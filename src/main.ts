@@ -119,7 +119,7 @@ class MiniMediaPlayer extends LitElement {
         this.prevThumbnail = '';
       }, 1000);
     }
-    if (changedProps.has('player') && this.config.artwork === 'material') {
+    if (changedProps.has('player') && this.config.artwork.includes('material')) {
       this.setColors();
     }
     return UPDATE_PROPS.some((prop) => changedProps.has(prop)) && Boolean(this.player);
@@ -293,7 +293,7 @@ class MiniMediaPlayer extends LitElement {
       </div>`;
     }
 
-    if (this.config.icon_image != undefined){
+    if (this.config.icon_image != undefined) {
       return html` <div class="entity__icon">
         <img src="${this.config.icon_image}" height="100%" />
       </div>`;
@@ -320,22 +320,34 @@ class MiniMediaPlayer extends LitElement {
     if (this.config.hide.info) return;
     const items = this.player.mediaInfo;
 
-    return html` <div
-      class="entity__info__media"
-      ?short=${this.config.info === 'short' || !this.player.isActive}
-      ?short-scroll=${this.config.info === 'scroll'}
-      ?scroll=${this.overflow}
-      style="animation-duration: ${this.overflow}s;"
-    >
-      ${this.config.info === 'scroll'
-        ? html` <div>
-            <div class="marquee">
-              ${items.map((i) => html`<span class=${`attr__${i.attr}`}>${i.prefix + i.text}</span>`)}
-            </div>
-          </div>`
-        : ''}
-      ${items.map((i) => html`<span class=${`attr__${i.attr}`}>${i.prefix + i.text}</span>`)}
-    </div>`;
+    if (this.config.artwork.includes('square')) {
+      const artist = items.find((m) => m.attr === 'media_artist');
+      const title = items.find((m) => m.attr === 'media_title');
+      return html` <div
+        class="entity__info__media"
+        style="animation-duration: ${this.overflow}s; padding-bottom: 0.25em;"
+      >
+        ${!!artist ? html`<span class=${`attr__${artist.attr}`}>${artist.prefix + artist.text}</span><br />` : ''}
+        ${!!title ? html`<span class=${`attr__${title.attr}`}>${title.prefix + title.text}</span>` : ''}
+      </div>`;
+    } else {
+      return html` <div
+        class="entity__info__media"
+        ?short=${this.config.info === 'short' || !this.player.isActive}
+        ?short-scroll=${this.config.info === 'scroll'}
+        ?scroll=${this.overflow}
+        style="animation-duration: ${this.overflow}s;"
+      >
+        ${this.config.info === 'scroll'
+          ? html` <div>
+              <div class="marquee">
+                ${items.map((i) => html`<span class=${`attr__${i.attr}`}>${i.prefix + i.text}</span>`)}
+              </div>
+            </div>`
+          : ''}
+        ${items.map((i) => html`<span class=${`attr__${i.attr}`}>${i.prefix + i.text}</span>`)}
+      </div>`;
+    }
   }
 
   speakerCount(): string | undefined {
@@ -357,6 +369,7 @@ class MiniMediaPlayer extends LitElement {
           '--mmp-icon-active-color': this.foregroundColor,
           '--mmp-accent-color': this.foregroundColor,
           '--paper-slider-container-color': this.foregroundColor,
+          '--primary-color': this.backgroundColor,
           '--secondary-text-color': this.foregroundColor,
           '--mmp-media-cover-info-color': this.foregroundColor,
         }),
